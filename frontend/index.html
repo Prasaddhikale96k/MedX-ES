@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedX-ES — Explainable Expert System</title>
+
+<!-- Google Fonts (with system fallbacks declared in CSS) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<!-- Inline SVG favicon: stethoscope on a pink rounded square (kills the /favicon.ico 404) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23FF8FB1'/%3E%3Crect x='6' y='9' width='4' height='13' rx='2' fill='%23111111'/%3E%3Ccircle cx='16' cy='16' r='5' fill='none' stroke='%23111111' stroke-width='2.5'/%3E%3Cpath d='M21 12 L26 12 L26 18' fill='none' stroke='%23111111' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+
+<style>
+/* =====================================================================
+   MedX-ES :: Neubrutalism design system (simplified, premium)
+   ===================================================================== */
+:root{
+  --bg:#FFF4E0; --ink:#111111; --white:#FFFFFF;
+  --yellow:#FFD02F; --pink:#FF8FB1; --cyan:#7BDFF2; --lime:#C8F169;
+  --purple:#B79CFF; --red:#FF5D5D;
+  --b:3px solid var(--ink);
+  --sh:6px 6px 0 var(--ink);
+  --sh-lg:10px 10px 0 var(--ink);
+  --sh-sm:4px 4px 0 var(--ink);
+  --r:16px;
+  --font-d:'Archivo Black',system-ui,sans-serif;
+  --font-b:'Space Grotesk',system-ui,sans-serif;
+  --font-m:'Space Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-b); color:var(--ink); background:var(--bg);
+  background-image:radial-gradient(rgba(17,17,17,.07) 1.5px,transparent 1.5px);
+  background-size:24px 24px; overflow-x:hidden; line-height:1.5;
+}
+::selection{background:var(--yellow);color:var(--ink)}
+h1,h2,h3{font-family:var(--font-d);text-transform:uppercase;line-height:1.02;letter-spacing:-.5px}
+
+/* ---------- generic brutalist components ---------- */
+.card{background:var(--white);border:var(--b);border-radius:var(--r);box-shadow:var(--sh)}
+.btn{
+  font-family:var(--font-d);font-size:15px;text-transform:uppercase;letter-spacing:.5px;
+  background:var(--white);color:var(--ink);border:var(--b);border-radius:12px;
+  padding:12px 22px;cursor:pointer;box-shadow:var(--sh-sm);
+  transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .12s;
+  display:inline-flex;align-items:center;gap:8px;text-decoration:none;user-select:none;
+}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}   /* press effect */
+.btn-yellow{background:var(--yellow)} .btn-pink{background:var(--pink)}
+.btn-cyan{background:var(--cyan)} .btn-lime{background:var(--lime)}
+.btn-purple{background:var(--purple)} .btn-black{background:var(--ink);color:var(--yellow)}
+.btn-lg{padding:16px 28px;font-size:17px;border-radius:14px;box-shadow:var(--sh)}
+.btn-lg:hover{box-shadow:9px 9px 0 var(--ink)}
+.btn:disabled{opacity:.6;cursor:wait;transform:none;box-shadow:var(--sh-sm)}
+.badge{
+  font-family:var(--font-m);font-weight:700;font-size:11px;letter-spacing:1px;
+  border:2.5px solid var(--ink);border-radius:999px;padding:4px 12px;
+  display:inline-block;box-shadow:3px 3px 0 var(--ink);background:var(--white);
+}
+.hl{background:linear-gradient(transparent 55%,var(--yellow) 55%);padding:0 6px}
+
+/* ---------- nav ---------- */
+.nav{
+  position:sticky;top:0;z-index:100;display:flex;justify-content:space-between;align-items:center;
+  padding:14px 28px;background:var(--bg);border-bottom:var(--b);
+}
+.nav-logo{font-family:var(--font-d);font-size:22px;display:flex;align-items:center;gap:10px}
+.nav-logo .cube{
+  width:34px;height:34px;background:var(--pink);border:var(--b);border-radius:9px;
+  display:grid;place-items:center;font-size:18px;box-shadow:var(--sh-sm);
+}
+.nav-badges{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ---------- hero ---------- */
+.hero{max-width:1240px;margin:0 auto;padding:72px 28px 56px}
+.hero-tag{font-family:var(--font-m);font-weight:700;font-size:12px;letter-spacing:2.5px;background:var(--cyan);border:var(--b);border-radius:999px;padding:6px 16px;display:inline-block;box-shadow:var(--sh-sm);margin-bottom:24px}
+.hero h1{font-size:clamp(42px,6vw,76px);margin-bottom:24px}
+.hero-sub{font-size:18px;max-width:56ch;margin-bottom:32px}
+.hero-cta{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:48px}
+.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:640px}
+.stat-card{background:var(--white);border:var(--b);border-radius:14px;box-shadow:var(--sh-sm);padding:16px 10px;text-align:center;transition:transform .15s,box-shadow .15s}
+.stat-card:hover{transform:translate(-2px,-2px);box-shadow:var(--sh)}
+.stat-card .stat-num{font-family:var(--font-d);font-size:26px}
+.stat-card .stat-lbl{font-family:var(--font-m);font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;opacity:.75;margin-top:2px}
+
+/* ---------- section shells ---------- */
+section{max-width:1240px;margin:0 auto;padding:56px 28px}
+.sec-head{display:flex;align-items:center;gap:16px;margin-bottom:34px;flex-wrap:wrap}
+.sec-head h2{font-size:clamp(28px,4vw,44px)}
+.sec-head .rule{flex:1;height:4px;background:var(--ink);border-radius:2px;min-width:60px}
+
+/* ---------- how it works ---------- */
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px}
+.how-card{padding:26px 24px;transition:transform .15s,box-shadow .15s}
+.how-card:hover{transform:translate(-3px,-3px);box-shadow:var(--sh-lg)}
+.how-card .icon{width:58px;height:58px;border:var(--b);border-radius:14px;display:grid;place-items:center;font-size:28px;margin-bottom:16px;box-shadow:var(--sh-sm)}
+.how-card h3{font-size:18px;margin-bottom:10px}
+.how-card p{font-size:14.5px;opacity:.85}
+.how-card .tag{margin-top:14px}
+
+/* ---------- console ---------- */
+.console{border-top:var(--b);background:repeating-linear-gradient(-45deg,rgba(255,208,47,.12) 0 26px,transparent 26px 52px)}
+.console-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:26px;align-items:start}
+.panel{padding:26px;position:relative}
+.panel-title{font-family:var(--font-d);font-size:14px;text-transform:uppercase;letter-spacing:.5px;margin:24px 0 12px;display:flex;align-items:center;gap:10px}
+.panel-title:first-child{margin-top:0}
+.panel-title .num{width:26px;height:26px;background:var(--ink);color:var(--yellow);border-radius:8px;display:grid;place-items:center;font-size:13px;flex:none}
+.search-box{position:relative;margin-bottom:16px}
+.search-box input{
+  width:100%;font-family:var(--font-m);font-size:14px;padding:12px 14px 12px 40px;
+  border:var(--b);border-radius:12px;background:var(--white);box-shadow:var(--sh-sm);outline:none;
+}
+.search-box input:focus{box-shadow:var(--sh);transform:translate(-1px,-1px)}
+.search-box::before{content:"🔍";position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px}
+.chip-group{margin-bottom:18px}
+.chip-group-label{font-family:var(--font-m);font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;opacity:.7;margin-bottom:9px}
+.chips{display:flex;flex-wrap:wrap;gap:9px}
+.chip{
+  font-family:var(--font-b);font-weight:600;font-size:13.5px;
+  background:var(--white);border:2.5px solid var(--ink);border-radius:999px;
+  padding:7px 14px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);
+  transition:transform .12s cubic-bezier(.34,1.56,.64,1),box-shadow .12s,background .15s;
+  display:inline-flex;align-items:center;gap:7px;user-select:none;
+}
+.chip:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+.chip .tick{display:none;font-weight:700}
+.chip.selected{background:var(--lime);transform:rotate(-2deg);box-shadow:4px 4px 0 var(--ink)}
+.chip.selected .tick{display:inline}
+.chip.hidden{display:none}
+.selected-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--white);border:2.5px dashed var(--ink);border-radius:12px;padding:10px 14px;font-family:var(--font-m);font-size:12.5px;margin-bottom:6px}
+.selected-bar b{font-family:var(--font-d)}
+.link-btn{background:none;border:none;font-family:var(--font-m);font-weight:700;font-size:12px;text-decoration:underline;cursor:pointer;color:var(--ink)}
+textarea{
+  width:100%;font-family:var(--font-m);font-size:13.5px;padding:12px 14px;min-height:74px;resize:vertical;
+  border:var(--b);border-radius:12px;background:var(--white);box-shadow:var(--sh-sm);outline:none;
+}
+textarea:focus{box-shadow:var(--sh);transform:translate(-1px,-1px)}
+.demo-btns{display:flex;flex-wrap:wrap;gap:10px}
+.demo-btn{
+  font-family:var(--font-b);font-weight:700;font-size:13px;background:var(--white);border:2.5px solid var(--ink);
+  border-radius:12px;padding:9px 14px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);
+  transition:transform .12s,box-shadow .12s;display:inline-flex;gap:8px;align-items:center;
+}
+.demo-btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink);background:var(--yellow)}
+.diagnose-row{display:flex;gap:14px;margin-top:26px;flex-wrap:wrap}
+#btnDiagnose{flex:1;justify-content:center;font-size:19px;padding:18px;background:var(--yellow)}
+
+/* ---------- result panel ---------- */
+.result-panel{min-height:520px;display:flex;flex-direction:column}
+.result-placeholder{flex:1;display:grid;place-items:center;text-align:center;padding:30px}
+.result-placeholder .big-emoji{font-size:74px}
+.result-placeholder h3{font-size:24px;margin:18px 0 10px}
+.result-placeholder p{font-family:var(--font-m);font-size:13px;opacity:.7;max-width:34ch}
+
+/* loading state: simple 3-dot pulse */
+.loading-state{text-align:center;padding:48px 20px}
+.loading-dots{display:flex;gap:8px;justify-content:center;margin-bottom:18px}
+.loading-dots span{width:12px;height:12px;border-radius:50%;background:var(--ink);animation:pulse 1.4s ease-in-out infinite}
+.loading-dots span:nth-child(2){animation-delay:.2s}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.loading-text{font-family:var(--font-m);font-weight:700;font-size:14px}
+
+/* top card */
+.top-card{border:var(--b);border-radius:var(--r);box-shadow:var(--sh);padding:24px;margin-bottom:20px}
+.top-card.likely{background:var(--lime)}
+.top-card.possible{background:var(--yellow)}
+.top-card.abstain{background:var(--pink)}
+.top-band{font-family:var(--font-m);font-weight:700;font-size:11.5px;letter-spacing:2px;border:2.5px solid var(--ink);border-radius:999px;padding:4px 12px;display:inline-block;background:var(--white);box-shadow:3px 3px 0 var(--ink);margin-bottom:14px}
+.top-disease{font-family:var(--font-d);font-size:clamp(28px,4.4vw,44px);text-transform:uppercase;margin-bottom:6px;word-break:break-word}
+.top-conf{font-family:var(--font-d);font-size:56px;line-height:1}
+.top-conf-row{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.top-advice{margin-top:14px;font-size:14.5px;background:var(--white);border:2.5px solid var(--ink);border-radius:12px;padding:12px 14px}
+
+/* ranked list */
+.rank-list{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.rank-row{background:var(--white);border:2.5px solid var(--ink);border-radius:14px;padding:14px 16px;box-shadow:var(--sh-sm)}
+.rank-row.first{box-shadow:var(--sh);border-width:3px}
+.rank-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px;flex-wrap:wrap}
+.rank-name{font-family:var(--font-d);font-size:15px;text-transform:uppercase}
+.rank-final{font-family:var(--font-m);font-weight:700;font-size:14px;background:var(--ink);color:var(--yellow);border-radius:8px;padding:2px 9px}
+.bar-row{display:grid;grid-template-columns:74px 1fr 52px;gap:9px;align-items:center;margin-top:6px;font-family:var(--font-m);font-size:11px}
+.bar-track{height:14px;background:var(--bg);border:2px solid var(--ink);border-radius:999px;overflow:hidden}
+.bar-fill{height:100%;width:0;border-right:2px solid var(--ink);transition:width .3s ease}   /* 200-300ms fill */
+.bar-fill.cf{background:var(--cyan)} .bar-fill.ml{background:var(--purple)} .bar-fill.fin{background:var(--lime)}
+.bar-val{text-align:right;font-weight:700}
+
+/* accordion */
+.accordion{border:2.5px solid var(--ink);border-radius:14px;background:var(--white);box-shadow:var(--sh-sm);margin-bottom:20px;overflow:hidden}
+.acc-head{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 17px;background:var(--white);border:none;cursor:pointer;font-family:var(--font-d);font-size:14px;text-transform:uppercase;text-align:left}
+.acc-head .arrow{transition:transform .25s;font-size:18px}
+.accordion.open .acc-head .arrow{transform:rotate(180deg)}
+.acc-body{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.22,1,.36,1)}   /* smooth open/close */
+.acc-inner{padding:4px 17px 17px;font-size:13.5px}
+.rule-line{font-family:var(--font-m);font-size:12px;background:var(--bg);border:2px solid var(--ink);border-radius:9px;padding:8px 11px;margin:7px 0;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.rule-line b{background:var(--yellow);padding:0 5px;border-radius:4px}
+.math-line{font-family:var(--font-m);font-size:12px;margin:7px 0;padding-left:12px;border-left:4px solid var(--cyan)}
+.ml-note{font-family:var(--font-m);font-size:11.5px;background:var(--bg);border:2px dashed var(--ink);border-radius:10px;padding:10px 12px;margin-top:12px;line-height:1.65}
+.disclaimer{font-family:var(--font-m);font-size:11px;border:2.5px solid var(--ink);border-radius:12px;padding:11px 13px;background:var(--white);margin-top:6px}
+.ml-guess{display:flex;justify-content:space-between;font-family:var(--font-m);font-size:12.5px;background:var(--white);border:2px solid var(--ink);border-radius:9px;padding:7px 11px;margin-top:7px}
+.ml-guess.strike{opacity:.65;text-decoration:line-through;text-decoration-thickness:2px}
+
+/* ---------- footer ---------- */
+footer{background:var(--ink);color:var(--bg);border-top:var(--b);margin-top:40px}
+.foot-grid{max-width:1240px;margin:0 auto;padding:46px 28px;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:34px}
+.foot-grid h4{font-family:var(--font-d);font-size:15px;color:var(--yellow);margin-bottom:14px;text-transform:uppercase}
+.foot-grid p,.foot-grid li{font-size:13.5px;opacity:.9;line-height:1.7}
+.foot-grid ul{list-style:none}
+.foot-grid li::before{content:"▸ ";color:var(--yellow)}
+.foot-bottom{border-top:2px solid rgba(255,244,224,.25);padding:16px 28px;text-align:center;font-family:var(--font-m);font-size:11.5px;opacity:.8}
+
+/* ---------- toast / server error ---------- */
+#toast{
+  position:fixed;left:50%;bottom:34px;transform:translate(-50%,120%);z-index:9998;
+  background:var(--ink);color:var(--yellow);font-family:var(--font-m);font-weight:700;font-size:13px;
+  border:2.5px solid var(--ink);border-radius:999px;padding:11px 22px;box-shadow:var(--sh);
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;max-width:90vw;text-align:center;
+}
+#toast.show{transform:translate(-50%,0)}
+.server-error{
+  position:fixed;inset:auto 20px 20px 20px;z-index:9997;background:var(--red);color:var(--ink);
+  border:var(--b);border-radius:var(--r);box-shadow:var(--sh-lg);padding:18px 22px;font-family:var(--font-m);
+  font-size:13px;font-weight:700;
+}
+.server-error.hidden{display:none}
+.server-error code{background:var(--ink);color:var(--yellow);padding:2px 8px;border-radius:6px}
+
+/* ---------- responsive ---------- */
+@media (max-width:960px){
+  .hero{padding-top:48px}
+  .console-grid{grid-template-columns:1fr}
+  .hero-stats{grid-template-columns:repeat(2,1fr)}
+  .foot-grid{grid-template-columns:1fr}
+}
+@media (max-width:600px){
+  .nav{padding:10px 16px}
+  .nav-logo{font-size:18px}
+  section{padding:40px 16px}
+  .hero{padding:48px 16px 40px}
+  .hero-stats{grid-template-columns:1fr 1fr}
+  .top-conf{font-size:44px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<!-- ======================= nav ======================= -->
+<nav class="nav">
+  <div class="nav-logo"><span class="cube">🩺</span>MedX&#8209;ES</div>
+  <div class="nav-badges">
+    <span class="badge" style="background:var(--yellow)">ASSIGNMENT 6</span>
+    <span class="badge" style="background:var(--cyan)">CO5</span>
+    <span class="badge" style="background:var(--lime)">SEM VI</span>
+  </div>
+</nav>
+
+<!-- ======================= hero ======================= -->
+<header class="hero">
+  <div class="hero-tag">EXPERT SYSTEM · MEDICAL DOMAIN</div>
+  <h1>Symptoms in.<br><span class="hl">Diagnosis</span> out.<br>Zero guessing.</h1>
+  <p class="hero-sub">
+    A hybrid neuro-symbolic expert system: doctor-written <b>IF–THEN rules with certainty
+    factors</b>, blended with a <b>Naive Bayes prior trained on 4,920 real patient records</b> —
+    and it <b>refuses to guess</b> when the evidence is too weak.
+  </p>
+  <div class="hero-cta">
+    <a class="btn btn-pink btn-lg" href="#console">Start diagnosis →</a>
+    <button class="btn btn-lg" id="btnHeroDemo">▶ Run demo case</button>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-card"><div class="stat-num">9</div><div class="stat-lbl">diseases in KB</div></div>
+    <div class="stat-card"><div class="stat-num">29</div><div class="stat-lbl">IF–THEN rules</div></div>
+    <div class="stat-card"><div class="stat-num" id="heroAccuracy">100%</div><div class="stat-lbl">NB test accuracy</div></div>
+    <div class="stat-card"><div class="stat-num">12/12</div><div class="stat-lbl">test cases pass</div></div>
+  </div>
+</header>
+
+<!-- ======================= how it works ======================= -->
+<section>
+  <div class="sec-head"><h2>How it works</h2><div class="rule"></div><span class="badge" style="background:var(--purple)">4 MODULES</span></div>
+  <div class="how-grid">
+    <div class="card how-card">
+      <div class="icon" style="background:var(--yellow)">📚</div>
+      <h3>Knowledge base</h3>
+      <p>29 IF–THEN rules for 9 diseases, each carrying a <b>certainty factor</b> in the MYCIN tradition. Editable without touching the engine code.</p>
+      <span class="badge" style="background:var(--yellow)">knowledge_base.py</span>
+    </div>
+    <div class="card how-card">
+      <div class="icon" style="background:var(--cyan)">⚙️</div>
+      <h3>Inference engine</h3>
+      <p><b>Forward chaining</b> fires every matching rule, then certainty factors are combined with classic CF algebra to rank the hypotheses.</p>
+      <span class="badge" style="background:var(--cyan)">inference_engine.py</span>
+    </div>
+    <div class="card how-card">
+      <div class="icon" style="background:var(--purple)">📊</div>
+      <h3>ML prior</h3>
+      <p>A from-scratch <b>Naive Bayes</b> trained on the original Kaggle dataset (4,920 records, 41 diseases) re-ranks the rule-supported hypotheses.</p>
+      <span class="badge" style="background:var(--purple)">ml_prior.py</span>
+    </div>
+    <div class="card how-card">
+      <div class="icon" style="background:var(--lime)">🛡️</div>
+      <h3>Safety gate</h3>
+      <p>Confidence below threshold? The system <b>abstains</b> and sends you to a doctor — the rule base gates, ML never diagnoses alone.</p>
+      <span class="badge" style="background:var(--lime)">human-in-the-loop</span>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= console ======================= -->
+<section class="console" id="console">
+  <div class="sec-head"><h2>Diagnosis console</h2><div class="rule"></div><span class="badge" style="background:var(--pink)">LIVE</span></div>
+  <div class="console-grid">
+
+    <!-- ---------- input panel ---------- -->
+    <div class="card panel">
+      <div class="panel-title"><span class="num">1</span>Pick your symptoms</div>
+      <div class="search-box"><input id="symptomSearch" type="text" placeholder="Search symptoms…" autocomplete="off"></div>
+      <div id="chipGroups"></div>
+      <div class="selected-bar">
+        <span>Selected: <b id="selCount">0</b></span>
+        <span id="selPreview" style="opacity:.75"></span>
+        <button class="link-btn" id="btnClear" style="margin-left:auto">clear all ✕</button>
+      </div>
+
+      <div class="panel-title"><span class="num">2</span>Or type in plain words</div>
+      <textarea id="freeText" placeholder="e.g. two din se bukhar aur sir dard, thand bhi lag rahi hai"></textarea>
+      <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn btn-cyan" id="btnParse">✨ Parse text</button>
+      </div>
+
+      <div class="panel-title"><span class="num">3</span>Quick demos</div>
+      <div class="demo-btns" id="demoBtns"></div>
+
+      <div class="diagnose-row">
+        <button class="btn btn-lg" id="btnDiagnose">Diagnose ▶</button>
+      </div>
+    </div>
+
+    <!-- ---------- result panel ---------- -->
+    <div class="card panel result-panel" id="resultPanel">
+      <div class="result-placeholder" id="resultPlaceholder">
+        <div>
+          <div class="big-emoji">🧭</div>
+          <h3>No diagnosis yet</h3>
+          <p>Select symptoms on the left (or type them in plain words) and hit <b>DIAGNOSE</b>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= footer ======================= -->
+<footer>
+  <div class="foot-grid">
+    <div>
+      <h4>MedX-ES</h4>
+      <p>An explainable hybrid expert system built for the Mini Project (Assignment 6) of
+      2311304 — Artificial Intelligence and Data Science Lab, T.Y. B.Tech AI &amp; Data Science.
+      Educational decision-support prototype only.</p>
+    </div>
+    <div>
+      <h4>Under the hood</h4>
+      <ul>
+        <li>Forward chaining + certainty factors</li>
+        <li>Naive Bayes (from scratch, std-lib)</li>
+        <li>Rule-gated hybrid scoring</li>
+        <li>Abstention / human-in-the-loop</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Dataset &amp; tools</h4>
+      <ul>
+        <li>Kaggle: Disease Prediction (kaushil268)</li>
+        <li>4,920 records · 41 diseases · 132 features</li>
+        <li>Python 3 · standard library only</li>
+        <li>12/12 journal test cases pass</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bottom">MEDX-ES © 2026 · NOT A MEDICAL DEVICE · MADE FOR 2311304 LAB</div>
+</footer>
+
+<div id="toast"></div>
+<div class="server-error hidden" id="serverError">
+  ⚠️ Cannot reach the MedX-ES server. Open a terminal in the <b>MedX-ES</b> folder and run
+  <code>python3 server.py</code> — then refresh this page.
+</div>
+
+<script>
+/* =====================================================================
+   MedX-ES :: frontend logic
+   ===================================================================== */
+"use strict";
+
+const state = {
+  symptoms: {},          // {symptomId: question}
+  categories: {},        // {categoryName: [symptomIds]}
+  demos: [],
+  selected: new Set(),
+  modelInfo: null,
+  busy: false
+};
+
+const $ = (id) => document.getElementById(id);
+const els = {
+  chipGroups: $("chipGroups"), search: $("symptomSearch"), selCount: $("selCount"),
+  selPreview: $("selPreview"), freeText: $("freeText"), demoBtns: $("demoBtns"),
+  btnDiagnose: $("btnDiagnose"), btnParse: $("btnParse"), btnClear: $("btnClear"),
+  resultPanel: $("resultPanel"), toast: $("toast"), serverError: $("serverError"),
+  heroAccuracy: $("heroAccuracy")
+};
+
+/* ---------------- toast ---------------- */
+let toastTimer = null;
+function toast(msg) {
+  els.toast.textContent = msg;
+  els.toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => els.toast.classList.remove("show"), 2600);
+}
+
+/* ---------------- boot ----------------
+   BUG FIX: a fetch Response body can only be read ONCE. The old code called
+   symRes.json() twice (once for dicQuestions, once for dicCategories), so the
+   second call threw, the catch fired, and the red banner showed even though
+   the server was fine. Now each response is parsed exactly once into a local
+   variable, and we only show the banner on a genuine network/HTTP failure. */
+async function boot() {
+  try {
+    const [symRes, demoRes, infoRes] = await Promise.all([
+      fetch("/api/symptoms"), fetch("/api/demos"), fetch("/api/model-info")
+    ]);
+
+    // Check HTTP status before parsing (only a real failure shows the banner)
+    if (!symRes.ok || !demoRes.ok || !infoRes.ok) {
+      throw new Error("Server responded with an error status");
+    }
+
+    const symData  = await symRes.json();   // parse ONCE
+    const demoData = await demoRes.json();  // parse ONCE
+    const infoData = await infoRes.json();  // parse ONCE
+
+    state.symptoms   = symData.dicQuestions;
+    state.categories = symData.dicCategories;
+    state.demos      = demoData.lstDemoCases;
+    state.modelInfo  = infoData;
+
+    if (state.modelInfo.dNbAccuracy != null) {
+      els.heroAccuracy.textContent = Math.round(state.modelInfo.dNbAccuracy * 100) + "%";
+    }
+  } catch (err) {
+    console.error("MedX-ES boot failed:", err);   // real error in the console
+    els.serverError.classList.remove("hidden");
+    return;
+  }
+  renderChips();
+  renderDemos();
+  wireEvents();
+}
+
+/* ---------------- chips ---------------- */
+function renderChips() {
+  els.chipGroups.innerHTML = "";
+  for (const [cat, ids] of Object.entries(state.categories)) {
+    const wrap = document.createElement("div");
+    wrap.className = "chip-group";
+    wrap.dataset.category = cat;
+    const label = document.createElement("div");
+    label.className = "chip-group-label";
+    label.textContent = cat;
+    const row = document.createElement("div");
+    row.className = "chips";
+    ids.forEach((id) => {
+      if (!state.symptoms[id]) return;
+      const chip = document.createElement("button");
+      chip.className = "chip";
+      chip.dataset.symptom = id;
+      chip.dataset.label = state.symptoms[id].toLowerCase();
+      chip.innerHTML = `<span class="tick">✓</span>${pretty(id)}`;
+      chip.addEventListener("click", () => toggleChip(id, chip));
+      row.appendChild(chip);
+    });
+    wrap.appendChild(label); wrap.appendChild(row);
+    els.chipGroups.appendChild(wrap);
+  }
+}
+
+function pretty(id) {
+  return id.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function toggleChip(id, chipEl) {
+  if (state.selected.has(id)) {
+    state.selected.delete(id);
+    chipEl.classList.remove("selected");
+  } else {
+    state.selected.add(id);
+    chipEl.classList.add("selected");
+  }
+  syncSelected();
+}
+
+function syncSelected() {
+  els.selCount.textContent = state.selected.size;
+  const names = [...state.selected].map(pretty);
+  els.selPreview.textContent = names.length ? names.join(" · ") : "none yet";
+}
+
+function clearAll() {
+  state.selected.clear();
+  document.querySelectorAll(".chip.selected").forEach((c) => c.classList.remove("selected"));
+  syncSelected();
+}
+
+/* ---------------- demos ---------------- */
+function renderDemos() {
+  els.demoBtns.innerHTML = "";
+  state.demos.forEach((demo, i) => {
+    const btn = document.createElement("button");
+    btn.className = "demo-btn";
+    btn.innerHTML = `<span style="font-size:17px">${demo.strEmoji}</span>${demo.strName}`;
+    btn.addEventListener("click", () => fillDemo(i));
+    els.demoBtns.appendChild(btn);
+  });
+}
+
+function fillDemo(i) {
+  clearAll();
+  const demo = state.demos[i];
+  Object.keys(demo.dicPatient).forEach((id) => {
+    state.selected.add(id);
+    const chip = document.querySelector(`.chip[data-symptom="${id}"]`);
+    if (chip) chip.classList.add("selected");
+  });
+  syncSelected();
+  toast(`Loaded demo: ${demo.strName} — diagnosing…`);
+  runConsult();
+}
+
+/* ---------------- consult ---------------- */
+async function runConsult() {
+  if (state.busy) return;
+  if (state.selected.size === 0) { toast("Please select at least one symptom first"); return; }
+  state.busy = true;
+  els.btnDiagnose.disabled = true;
+  showLoading();
+
+  const dicSymptoms = {};
+  state.selected.forEach((id) => { dicSymptoms[id] = 1.0; });
+
+  try {
+    const res = await fetch("/api/consult", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dicSymptoms })
+    });
+    if (!res.ok) throw new Error("Consult request failed");
+    const data = await res.json();
+    renderResult(data);
+  } catch (err) {
+    console.error("MedX-ES consult failed:", err);
+    els.serverError.classList.remove("hidden");
+    showPlaceholder();
+  } finally {
+    state.busy = false;
+    els.btnDiagnose.disabled = false;
+  }
+}
+
+async function parseText() {
+  const text = els.freeText.value.trim();
+  if (!text) { toast("Type something first — e.g. 'fever with chills'"); return; }
+  try {
+    const res = await fetch("/api/consult-text", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ strText: text })
+    });
+    if (!res.ok) throw new Error("Parse request failed");
+    const data = await res.json();
+    if (!data.setRecognised || data.setRecognised.length === 0) {
+      toast("Hmm — no known symptom recognised in that text");
+      return;
+    }
+    clearAll();
+    data.setRecognised.forEach((id) => {
+      state.selected.add(id);
+      const chip = document.querySelector(`.chip[data-symptom="${id}"]`);
+      if (chip) chip.classList.add("selected");
+    });
+    syncSelected();
+    toast(`Recognised ${data.setRecognised.length} symptom(s) — diagnosing…`);
+    setTimeout(runConsult, 350);
+  } catch (err) {
+    console.error("MedX-ES parse failed:", err);
+    els.serverError.classList.remove("hidden");
+  }
+}
+
+/* ---------------- result rendering ---------------- */
+function showPlaceholder() {
+  els.resultPanel.innerHTML = `
+    <div class="result-placeholder">
+      <div>
+        <div class="big-emoji">🧭</div>
+        <h3>No diagnosis yet</h3>
+        <p>Select symptoms on the left (or type them in plain words) and hit <b>DIAGNOSE</b>.</p>
+      </div>
+    </div>`;
+}
+
+function showLoading() {
+  els.resultPanel.innerHTML = `
+    <div class="loading-state">
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+      <div class="loading-text">Thinking…</div>
+    </div>`;
+}
+
+function renderResult(data) {
+  els.resultPanel.innerHTML = "";
+
+  /* ---------- abstention card (pink) ---------- */
+  if (data.bAbstain) {
+    const block = document.createElement("div");
+    let mlHtml = "";
+    if (data.lstMlOnlyTop && data.lstMlOnlyTop.length) {
+      mlHtml = `
+        <div style="font-family:var(--font-m);font-size:11.5px;margin:16px 0 6px;letter-spacing:1px">
+          WHAT THE ML PRIOR ALONE WOULD HAVE GUESSED (NOT DIAGNOSES):
+        </div>
+        ${data.lstMlOnlyTop.map((g) => `
+          <div class="ml-guess strike">
+            <span>${pretty(g.strDisease)}</span><b>${(g.dProb * 100).toFixed(1)}%</b>
+          </div>`).join("")}
+        <div style="font-family:var(--font-m);font-size:11px;margin-top:8px;opacity:.8">
+          ↑ The rule base gates the answer — ML alone is never allowed to diagnose.
+        </div>`;
+    }
+    block.innerHTML = `
+      <div class="top-card abstain">
+        <span class="top-band">⚠ ABSTAIN · HUMAN-IN-THE-LOOP</span>
+        <div class="top-disease">Insufficient evidence</div>
+        <p style="font-size:14.5px;margin-top:6px">${escapeHtml(data.strMessage)}</p>
+        ${mlHtml}
+      </div>
+      <div class="disclaimer">🛡️ ${escapeHtml(data.strDisclaimer)}</div>`;
+    els.resultPanel.appendChild(block);
+    return;
+  }
+
+  /* guard: a non-abstain result must have a ranking */
+  if (!data.lstRanking || data.lstRanking.length === 0) { showPlaceholder(); return; }
+
+  const top = data.lstRanking[0];
+  const band = top.dFinal >= 0.6 ? "likely" : "possible";
+  const bandLabel = top.dFinal >= 0.6 ? "✓ LIKELY MATCH" : "~ POSSIBLE · SEE A DOCTOR";
+
+  /* ---- top card ---- */
+  const topCard = document.createElement("div");
+  topCard.innerHTML = `
+    <div class="top-card ${band}">
+      <span class="top-band">${bandLabel}</span>
+      <div class="top-disease">${escapeHtml(top.strDisease)}</div>
+      <div class="top-conf-row">
+        <div class="top-conf">${(top.dFinal * 100).toFixed(1)}%</div>
+        <div style="font-family:var(--font-m);font-size:12px;line-height:1.7">
+          FINAL CONFIDENCE<br>
+          <span style="opacity:.75">= 0.75 × rule CF + 0.25 × ML prior</span>
+        </div>
+      </div>
+      <div class="top-advice">💊 <b>Advice:</b> ${escapeHtml(data.dicExplanation.strAdvice)}</div>
+    </div>`;
+  els.resultPanel.appendChild(topCard);
+
+  /* ---- ranked list with 3 bars each ---- */
+  const rankBlock = document.createElement("div");
+  rankBlock.innerHTML = `
+    <div class="panel-title"><span class="num">📊</span>Ranked hypotheses</div>
+    <div class="rank-list">
+      ${data.lstRanking.map((r, i) => `
+        <div class="rank-row ${i === 0 ? "first" : ""}">
+          <div class="rank-head">
+            <span class="rank-name">${i === 0 ? "🏆 " : ""}${escapeHtml(r.strDisease)}</span>
+            <span class="rank-final">${(r.dFinal * 100).toFixed(1)}%</span>
+          </div>
+          <div class="bar-row"><span>Rule CF</span>
+            <div class="bar-track"><div class="bar-fill cf" data-w="${(r.dCf * 100).toFixed(1)}%"></div></div>
+            <span class="bar-val">${(r.dCf * 100).toFixed(0)}</span></div>
+          <div class="bar-row"><span>ML prior</span>
+            <div class="bar-track"><div class="bar-fill ml" data-w="${(r.dMl * 100).toFixed(1)}%"></div></div>
+            <span class="bar-val">${(r.dMl * 100).toFixed(0)}</span></div>
+          <div class="bar-row"><span><b>Final</b></span>
+            <div class="bar-track"><div class="bar-fill fin" data-w="${(r.dFinal * 100).toFixed(1)}%"></div></div>
+            <span class="bar-val"><b>${(r.dFinal * 100).toFixed(0)}</b></span></div>
+        </div>`).join("")}
+    </div>`;
+  els.resultPanel.appendChild(rankBlock);
+
+  /* ---- explanation accordion ---- */
+  const ex = data.dicExplanation;
+  const accBlock = document.createElement("div");
+  accBlock.innerHTML = `
+    <div class="accordion" id="accWhy">
+      <button class="acc-head"><span>🧠 Why this diagnosis?</span><span class="arrow">▾</span></button>
+      <div class="acc-body"><div class="acc-inner">
+        <div style="font-family:var(--font-m);font-size:11.5px;letter-spacing:1px;margin-bottom:8px">
+          RULES THAT FIRED (IF … THEN …)</div>
+        ${ex.lstFiredRules.map((r) => `
+          <div class="rule-line">
+            <span>IF ${r.lstPremises.map(escapeHtml).join(" + ")}</span>
+            <span><b>CF ${r.dStrength}</b></span>
+          </div>`).join("")}
+        <div class="math-line">CF_combine = CF₁ + CF₂·(1−CF₁)&nbsp;&nbsp;[agreeing evidence]</div>
+        <div class="math-line">CF_combine = (CF₁+CF₂)/(1−min(|CF₁|,|CF₂|))&nbsp;&nbsp;[conflicting evidence]</div>
+        <div class="math-line"><b>Combined rule CF = ${ex.dCombinedCf}</b></div>
+        <div class="math-line"><b>Final = 0.75 × ${ex.dCombinedCf} + 0.25 × ${ex.dMlProb} = ${ex.dFinal}</b></div>
+        <div class="ml-note">
+          ML prior: Naive Bayes trained on ${state.modelInfo ? state.modelInfo.iRecords.toLocaleString() : "4,920"}
+          patient records (${state.modelInfo ? state.modelInfo.iDiseases : 41} diseases) ·
+          test accuracy ${state.modelInfo && state.modelInfo.dNbAccuracy != null
+            ? (state.modelInfo.dNbAccuracy * 100).toFixed(0) + "%" : "—"}<br>
+          The rule base gates the diagnosis — the ML prior only re-ranks rule-supported diseases.
+        </div>
+      </div></div>
+    </div>
+    <div class="disclaimer">🛡️ ${escapeHtml(data.strDisclaimer)}</div>`;
+  els.resultPanel.appendChild(accBlock);
+
+  /* ---- wire accordion ---- */
+  const acc = $("accWhy");
+  acc.querySelector(".acc-head").addEventListener("click", () => {
+    const body = acc.querySelector(".acc-body");
+    const open = acc.classList.toggle("open");
+    body.style.maxHeight = open ? body.scrollHeight + 40 + "px" : "0px";
+  });
+
+  /* ---- animate confidence bars (200-300ms fill) ---- */
+  requestAnimationFrame(() => {
+    document.querySelectorAll(".bar-fill").forEach((b) => { b.style.width = b.dataset.w; });
+  });
+}
+
+/* ---------------- helpers ---------------- */
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+/* ---------------- events ---------------- */
+function wireEvents() {
+  els.btnDiagnose.addEventListener("click", runConsult);
+  els.btnParse.addEventListener("click", parseText);
+  els.btnClear.addEventListener("click", clearAll);
+  $("btnHeroDemo").addEventListener("click", () => {
+    document.getElementById("console").scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => fillDemo(0), 500);
+  });
+  els.search.addEventListener("input", () => {
+    const q = els.search.value.trim().toLowerCase();
+    document.querySelectorAll(".chip").forEach((chip) => {
+      const match = !q || chip.dataset.label.includes(q);
+      chip.classList.toggle("hidden", !match);
+    });
+    document.querySelectorAll(".chip-group").forEach((g) => {
+      const any = [...g.querySelectorAll(".chip")].some((c) => !c.classList.contains("hidden"));
+      g.style.display = any ? "" : "none";
+    });
+  });
+  els.freeText.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); parseText(); }
+  });
+}
+
+boot();
+</script>
+</body>
+</html>

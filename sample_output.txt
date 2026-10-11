@@ -1,0 +1,202 @@
+############################################################
+# MedX-ES :: SAMPLE OUTPUT (captured run)
+# Commands: python3 test_cases.py   |   python3 main.py
+# ML prior trained on the ORIGINAL Kaggle dataset
+#   (data/Training.csv - 4920 records, 41 diseases)
+############################################################
+
+=================== PART 1 : TEST CASES ====================
+
+==============================================================================
+ MedX-ES :: TEST CASE RESULTS
+==============================================================================
+
+  Test case                         Expected                Actual                  Result
+  --------------------------------------------------------------------------
+  T01  Dengue, classic              Dengue                  Dengue                  PASS
+  T02  Malaria, classic             Malaria                 Malaria                 PASS
+  T03  Typhoid, classic             Typhoid                 Typhoid                 PASS
+  T04  Influenza, classic           Influenza               Influenza               PASS
+  T05  Common cold                  Common Cold             Common Cold             PASS
+  T06  Pneumonia                    Pneumonia               Pneumonia               PASS
+  T07  Gastroenteritis              Gastroenteritis         Gastroenteritis         PASS
+  T08  Bronchitis                   Bronchitis              Bronchitis              PASS
+  T09  Urinary tract infection      Urinary Tract Infection Urinary Tract Infection PASS
+  T10  Partial info (weak evidence) Influenza               Influenza               PASS
+  T11  Fever only (too little info) ABSTAIN                 ABSTAIN                 PASS
+  T12  Non-specific complaints      ABSTAIN                 ABSTAIN                 PASS
+  --------------------------------------------------------------------------
+  SUMMARY: 12/12 test cases passed (100%).
+
+  Note: 'ABSTAIN' is the CORRECT behaviour for T11 and T12 - an expert
+  system that has too little evidence must refuse to guess.
+
+=========== PART 2 : DEMO CASES (main.py option 1) ==========
+
+======================================================================
+ MedX-ES :: Explainable Hybrid Expert System (educational prototype)
+ Assignment 6 - 2311304 AI & Data Science Lab - CO5
+======================================================================
+
+  [ML prior trained on 4920 patient records covering 41 diseases]
+  [training source: original Kaggle dataset (/home/user/MedX-ES/data/Training.csv)]
+  [Naive Bayes test accuracy on the held-out test file: 92.9%]
+
+  MENU
+   1. Demo cases
+   2. Interactive consultation (questionnaire)
+   3. Free-text symptom entry (English / Hindi / Marathi)
+   4. Exit
+  Enter choice [1-4]: 
+### DEMO CASES ###
+
+======================================================================
+CASE: Demo 1 - classic dengue picture
+======================================================================
+  Reported findings: {'high_fever': 1.0, 'severe_headache': 1.0, 'retro_orbital_pain': 1.0, 'severe_joint_pain': 1.0, 'skin_rash': 1.0, 'platelet_drop': 1.0, 'fatigue': 0.8}
+
+  --------------------------------------------------------------
+  DIAGNOSIS TABLE (ranked by final confidence)
+  --------------------------------------------------------------
+  Disease                      Rule CF   ML prob     Final
+  Dengue                         0.995    0.9999    0.9962
+  Malaria                          0.4       0.0       0.3
+  (Only rule-supported diseases are listed: the rule base gates
+   the diagnosis, the ML prior re-ranks the supported diseases.)
+
+  RESULT: LIKELY Dengue  (confidence 0.9962)
+
+  EXPLANATION for 'Dengue':
+  Rules that fired (IF premises THEN conclusion):
+    IF ['high_fever', 'severe_headache', 'retro_orbital_pain']  ->  contributes CF = 0.8
+    IF ['high_fever', 'severe_joint_pain', 'skin_rash']  ->  contributes CF = 0.7
+    IF ['high_fever', 'platelet_drop']  ->  contributes CF = 0.85
+    IF ['high_fever', 'severe_headache']  ->  contributes CF = 0.45
+  Certainty-factor combination used:
+    CF_combine = CF1 + CF2*(1-CF1)               [agreeing evidence]
+    CF_combine = (CF1+CF2)/(1-min(|CF1|,|CF2|))) [conflicting evidence]
+  Combined rule CF for Dengue = 0.995
+  ML prior probability for Dengue = 0.9999
+  Hybrid score: Final = 0.75*CF + 0.25*P_ML (rule base gates, ML prior re-ranks)
+  Advice: Rest and fluids; a platelet count / NS1 test is usually advised.
+
+  DISCLAIMER: MedX-ES is an educational decision-SUPPORT prototype. It is NOT a doctor and must never be used for real treatment decisions.
+
+======================================================================
+CASE: Demo 2 - classic malaria picture
+======================================================================
+  Reported findings: {'high_fever': 1.0, 'chills': 1.0, 'sweating': 1.0, 'severe_headache': 1.0, 'fatigue': 1.0}
+
+  --------------------------------------------------------------
+  DIAGNOSIS TABLE (ranked by final confidence)
+  --------------------------------------------------------------
+  Disease                      Rule CF   ML prob     Final
+  Malaria                       0.9725    0.1604    0.7695
+  Influenza                        0.6       0.0      0.45
+  Dengue                          0.45    0.1688    0.3797
+  (Only rule-supported diseases are listed: the rule base gates
+   the diagnosis, the ML prior re-ranks the supported diseases.)
+
+  RESULT: LIKELY Malaria  (confidence 0.7695)
+
+  EXPLANATION for 'Malaria':
+  Rules that fired (IF premises THEN conclusion):
+    IF ['high_fever', 'chills', 'sweating']  ->  contributes CF = 0.9
+    IF ['high_fever', 'severe_headache', 'fatigue']  ->  contributes CF = 0.5
+    IF ['high_fever', 'chills']  ->  contributes CF = 0.45
+  Certainty-factor combination used:
+    CF_combine = CF1 + CF2*(1-CF1)               [agreeing evidence]
+    CF_combine = (CF1+CF2)/(1-min(|CF1|,|CF2|))) [conflicting evidence]
+  Combined rule CF for Malaria = 0.9725
+  ML prior probability for Malaria = 0.1604
+  Hybrid score: Final = 0.75*CF + 0.25*P_ML (rule base gates, ML prior re-ranks)
+  Advice: A blood smear or rapid antigen test is usually advised.
+
+  DISCLAIMER: MedX-ES is an educational decision-SUPPORT prototype. It is NOT a doctor and must never be used for real treatment decisions.
+
+======================================================================
+CASE: Demo 3 - weak evidence (abstention gate)
+======================================================================
+  Reported findings: {'fatigue': 0.6, 'loss_of_appetite': 0.6}
+
+  No rule in the knowledge base fired for these findings.
+  (For transparency, the ML prior alone would have guessed:
+     dengue                        0.1447
+     hepatitis e                   0.1447
+     tuberculosis                  0.1447
+   These are NOT diagnoses - the rule base gates the answer.)
+
+  --------------------------------------------------------------
+  DIAGNOSIS TABLE: empty (no rule-supported hypothesis)
+  --------------------------------------------------------------
+  No rule in the knowledge base matches these findings - not enough evidence to conclude.
+  -> The system refuses to guess. Please consult a qualified doctor.
+
+  DISCLAIMER: MedX-ES is an educational decision-SUPPORT prototype. It is NOT a doctor and must never be used for real treatment decisions.
+
+  MENU
+   1. Demo cases
+   2. Interactive consultation (questionnaire)
+   3. Free-text symptom entry (English / Hindi / Marathi)
+   4. Exit
+  Enter choice [1-4]:   Goodbye! DISCLAIMER: MedX-ES is an educational decision-SUPPORT prototype. It is NOT a doctor and must never be used for real treatment decisions.
+
+===== PART 3 : FREE-TEXT ENTRY (main.py option 3) ============
+
+======================================================================
+ MedX-ES :: Explainable Hybrid Expert System (educational prototype)
+ Assignment 6 - 2311304 AI & Data Science Lab - CO5
+======================================================================
+
+  [ML prior trained on 4920 patient records covering 41 diseases]
+  [training source: original Kaggle dataset (/home/user/MedX-ES/data/Training.csv)]
+  [Naive Bayes test accuracy on the held-out test file: 92.9%]
+
+  MENU
+   1. Demo cases
+   2. Interactive consultation (questionnaire)
+   3. Free-text symptom entry (English / Hindi / Marathi)
+   4. Exit
+  Enter choice [1-4]: 
+### FREE-TEXT SYMPTOM ENTRY ###
+Describe your symptoms in English, Hindi or Marathi, e.g.
+  'two din se bukhar aur sir dard'  |  'fever with chills and sweating'
+
+  Your symptoms:   Recognised symptoms: ['breathlessness', 'chest_pain', 'cough']
+
+  --------------------------------------------------------------
+  DIAGNOSIS TABLE (ranked by final confidence)
+  --------------------------------------------------------------
+  Disease                      Rule CF   ML prob     Final
+  Pneumonia                       0.96     0.492     0.843
+  Bronchitis                      0.45       0.0    0.3375
+  (Only rule-supported diseases are listed: the rule base gates
+   the diagnosis, the ML prior re-ranks the supported diseases.)
+
+  RESULT: LIKELY Pneumonia  (confidence 0.843)
+
+  EXPLANATION for 'Pneumonia':
+  Rules that fired (IF premises THEN conclusion):
+    IF ['cough', 'chest_pain', 'breathlessness']  ->  contributes CF = 0.9
+    IF ['cough', 'breathlessness']  ->  contributes CF = 0.6
+  Certainty-factor combination used:
+    CF_combine = CF1 + CF2*(1-CF1)               [agreeing evidence]
+    CF_combine = (CF1+CF2)/(1-min(|CF1|,|CF2|))) [conflicting evidence]
+  Combined rule CF for Pneumonia = 0.96
+  ML prior probability for Pneumonia = 0.492
+  Hybrid score: Final = 0.75*CF + 0.25*P_ML (rule base gates, ML prior re-ranks)
+  Advice: Please see a doctor soon - a chest X-ray may be needed.
+
+  DISCLAIMER: MedX-ES is an educational decision-SUPPORT prototype. It is NOT a doctor and must never be used for real treatment decisions.
+
+  MENU
+   1. Demo cases
+   2. Interactive consultation (questionnaire)
+   3. Free-text symptom entry (English / Hindi / Marathi)
+   4. Exit
+  Enter choice [1-4]:   Goodbye! DISCLAIMER: MedX-ES is an educational decision-SUPPORT prototype. It is NOT a doctor and must never be used for real treatment decisions.
+
+===== PART 4 : WEB UI API CHECK (server.py) ==================
+
+POST /api/consult  -> Most likely: Malaria (confidence 0.8152).
+POST /api/consult-text -> recognised: ['chills', 'high_fever', 'sweating'] | Most likely: Malaria (confidence 0.8152).

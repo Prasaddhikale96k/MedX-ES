@@ -1,0 +1,51 @@
+=====================================================================
+ MedX-ES :: START HERE  (2 steps, 30 seconds)
+ Assignment 6 - Mini Project (Expert System) - 2311304 AI & DS Lab
+=====================================================================
+
+ REQUIREMENT : Python 3 only.  No installation, no internet needed.
+
+---------------------------------------------------------------------
+ STEP 1 - Open the web app (the pretty Neubrutalism UI)
+---------------------------------------------------------------------
+   cd MedX-ES
+   python3 server.py
+
+   -> then open  http://localhost:8000  in your browser
+
+   (port busy?  python3 server.py 8080   then open http://localhost:8080)
+
+   In the UI you can:
+     * click symptom chips (grouped by category) and press DIAGNOSE
+     * type symptoms in English / Hindi / Marathi and press "Parse text"
+       e.g.  two din se bukhar aur sir dard
+     * press a quick-demo button (Dengue / Malaria / Typhoid / Pneumonia / Gastro)
+     * read the ranked results, confidence bars and the "Why this
+       diagnosis?" explanation, and see the safety gate abstain on
+       weak evidence
+
+---------------------------------------------------------------------
+ STEP 2 - The same project as a command-line program (for the journal)
+---------------------------------------------------------------------
+   cd MedX-ES
+   python3 main.py           # menu: demo / questionnaire / free-text
+   python3 test_cases.py     # 12 journal test cases (12/12 pass)
+
+---------------------------------------------------------------------
+ WHAT IS INSIDE
+---------------------------------------------------------------------
+   knowledge_base.py    29 IF-THEN rules with certainty factors (9 diseases)
+   inference_engine.py  forward chaining + CF algebra + explanation + abstention
+   ml_prior.py          Naive Bayes trained on the original Kaggle dataset
+   symptom_lexicon.py   free text (EN/Hi/Mr) -> symptoms
+   server.py            web server (Python standard library only)
+   frontend/index.html  the Neubrutalism web UI
+   data/Training.csv    original dataset - 4,920 records, 41 diseases
+   data/Testing.csv     original dataset - 42 held-out records
+   sample_output.txt    captured output for the journal
+   README.md            full documentation + algorithm + flowchart
+   JOURNAL_WRITEUP.md   ready-to-copy journal write-up + viva answers
+
+=====================================================================
+ NOTE: educational decision-SUPPORT prototype. Not a medical device.
+=====================================================================
